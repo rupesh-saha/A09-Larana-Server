@@ -44,6 +44,12 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/doctors/:id", async (req, res) => {
+      const { id } = req.params;
+      const result = await doctorsCollection.findOne({ id: id });
+      res.send(result);
+    });
+
 
 
     await client.db("admin").command({ ping: 1 });
