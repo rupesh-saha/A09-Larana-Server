@@ -50,6 +50,16 @@ async function run() {
       res.send(result);
     });
 
+    app.post("/appointments", async (req, res) => {
+      const result = await appointmentsCollection.insertOne(req.body);
+      res.send(result);
+    });
+
+    app.get("/appointments", async (req, res) => {
+      const result = await appointmentsCollection.find().toArray();
+      res.send(result);
+    });
+
 
 
     await client.db("admin").command({ ping: 1 });
