@@ -6,7 +6,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 dotenv.config();
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 const uri = process.env.LARAVA_URI;
 const app = express();
@@ -57,6 +57,21 @@ async function run() {
 
     app.get("/appointments", async (req, res) => {
       const result = await appointmentsCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.get("/appointments/:email", async (req, res) => {
+      const { email } = req.params;
+      const result = await appointmentsCollection.find({ patientEmail: email }).toArray();
+      res.send(result);
+    });
+
+    app.put("/appointments/:id", async (req, res) => {
+      const { id } = req.params;
+      const result = await appointmentsCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: req.body }
+      );
       res.send(result);
     });
 
