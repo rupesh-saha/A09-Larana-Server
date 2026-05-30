@@ -4,6 +4,7 @@ dns.setServers(["8.8.8.8", "8.8.4.4"]);
 const express = require("express");
 const cors = require('cors');
 const dotenv = require('dotenv');
+const { createRemoteJWKSet, jwtVerify } = require("jose-cjs");
 dotenv.config();
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
@@ -23,7 +24,24 @@ const client = new MongoClient(uri, {
   }
 });
 
+const JWKS = createRemoteJWKSet(new URL("http://localhost:3000/api/auth/jwks"));
+
 const verifyToken = async (req, res, next) => {
+  const authHeader = req.headers.authorization
+  if (!authHeader) return res.status(401).json({ message: "Unauthorized" });
+
+  const token = authHeader.split(" ")[1];
+  if (!token) return res.status(401).json({ message: "Unauthorized" });
+
+  console.log(token)
+
+  try {
+    const { payload } = await jwtVerify(token, JWKS);
+    console.log(payload);
+    next();
+  } catch (error) {
+    return res.status(403).json({ message: "Forbidden" });
+  }
   
 }
 
@@ -47,7 +65,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/doctors/:id", async (req, res) => {
+    app.get("/doctors/:id", verifyToken, async (req, res) => {
       const { id } = req.params;
       const result = await doctorsCollection.findOne({ id: id });
       res.send(result);
